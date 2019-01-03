@@ -15,12 +15,19 @@ var VERSION = require('./package.json').version;
 var transformRuntime = ["@babel/plugin-transform-runtime", {
   "corejs": false,
   "helpers": true,
-  "regenerator": false,
+  "regenerator": true,
   "useESModules": false
 }];
 
+var transformBuiltin = ["babel-plugin-transform-builtin-extend", {
+  "globals": ["Error", "Array"]
+}]
+
 var PRESETS = {
   'browser': [["@babel/preset-env", {
+    "targets": "> 0.25%, not dead"
+  }], '@babel/preset-react'],
+  'wechatapp': [["@babel/preset-env", {
     "targets": "> 0.25%, not dead"
   }], '@babel/preset-react'],
   'node': [["@babel/preset-env", {
@@ -29,7 +36,8 @@ var PRESETS = {
   'react-native': ['@babel/preset-react'],
 };
 var PLUGINS = {
-  'browser': [transformRuntime, '@babel/plugin-transform-flow-comments', '@babel/plugin-proposal-class-properties', 'inline-package-json', 'transform-inline-environment-variables'],
+  'browser': [transformRuntime, transformBuiltin, '@babel/plugin-transform-flow-comments', '@babel/plugin-proposal-class-properties', 'inline-package-json', 'transform-inline-environment-variables'],
+  'wechatapp': [transformRuntime, transformBuiltin, '@babel/plugin-transform-flow-comments', '@babel/plugin-proposal-class-properties', 'inline-package-json', 'transform-inline-environment-variables'],
   'node': ['@babel/plugin-transform-flow-comments', 'inline-package-json', 'transform-inline-environment-variables'],
   'react-native': ['@babel/plugin-transform-flow-comments', 'inline-package-json', 'transform-inline-environment-variables'],
 };
@@ -74,7 +82,7 @@ gulp.task('compile', function() {
 gulp.task('browserify', function(cb) {
   var stream = browserify({
     builtins: ['_process', 'events'],
-    entries: 'lib/browser/Parse.js',
+    entries: `lib/${BUILD}/Parse.js`,
     standalone: 'Parse'
   })
     .exclude('xmlhttprequest')
@@ -86,15 +94,15 @@ gulp.task('browserify', function(cb) {
   return stream.pipe(source('parse.js'))
     .pipe(derequire())
     .pipe(insert.prepend(DEV_HEADER))
-    .pipe(gulp.dest('./dist'));
+    .pipe(gulp.dest(`./dist/${BUILD}`));
 });
 
 gulp.task('minify', function() {
-  return gulp.src('dist/parse.js')
+  return gulp.src(`dist/${BUILD}/parse.js`)
     .pipe(uglify())
     .pipe(insert.prepend(FULL_HEADER))
     .pipe(rename({ extname: '.min.js' }))
-    .pipe(gulp.dest('./dist'))
+    .pipe(gulp.dest(`./dist/${BUILD}`))
 });
 
 gulp.task('watch', function() {

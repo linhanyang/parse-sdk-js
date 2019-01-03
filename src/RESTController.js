@@ -8,7 +8,7 @@
  *
  * @flow
  */
-/* global XMLHttpRequest, XDomainRequest */
+/* global XMLHttpRequest, XDomainRequest, wx */
 import CoreManager from './CoreManager';
 import ParseError from './ParseError';
 
@@ -286,5 +286,33 @@ const RESTController = {
     XHR = xhr;
   }
 }
+
+/*
+* RESTController Custom
+*/
+if (process.env.PARSE_BUILD === 'wechatapp') {
+  RESTController.ajax = (method: string, url: string, data: any, header?: any) => {
+    const promise = new Promise((resolve, reject) => {
+      wx.request({
+        url,
+        data,
+        header,
+        method,
+        success: function (res) {
+          try {
+            resolve({ response: res.data, status: res.status, res });
+          } catch (e) {
+            reject(e.toString());
+          }
+        },
+        fail: function (err) {
+          reject(err.toString());
+        }
+      });
+    });
+    return promise;
+  };
+}
+
 
 module.exports = RESTController;

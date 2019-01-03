@@ -13,6 +13,7 @@ import EventEmitter from './EventEmitter';
 import ParseObject from './ParseObject';
 import LiveQuerySubscription from './LiveQuerySubscription';
 import { resolvingPromise } from './promiseUtils';
+import WXSocket from './WXSocket';
 
 // The LiveQuery client inner state
 const CLIENT_STATE = {
@@ -324,6 +325,8 @@ class LiveQueryClient extends EventEmitter {
       return require('ws');
     } else if (process.env.PARSE_BUILD === 'browser') {
       return typeof WebSocket === 'function' || typeof WebSocket === 'object' ? WebSocket : null;
+    } else if (process.env.PARSE_BUILD === 'wechatapp') {
+      return WXSocket;
     } else if (process.env.PARSE_BUILD === 'react-native') {
       return WebSocket;
     }
